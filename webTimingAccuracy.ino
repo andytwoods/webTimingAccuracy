@@ -3,9 +3,12 @@
 int lightPin = 1; // LED connected to digital pin 13
 int inPin = 7;   // pushbutton connected to digital pin 6
 int buttonVal = 0;     // variable to store the read value
-String message = "";
+String _message = "";
 volatile int lightVal = 0;
 volatile boolean lightOn = false;
+int startMicrosecondStamp = -1;
+int lastEventMicrosendStamp = -1;
+int duration = -1;
 
 void setup()
 {
@@ -20,26 +23,38 @@ void setup()
   Keyboard.begin();
 
   Serial.begin(9600);
+  startMicrosecondStamp = micros();
 }
 
 //add to list of characters to send
-void send(String str) {
-  if (message.length() > 0) message += '/n';
-  message += str;
+void message(String str) {
+  _message += str;
 }
 
-//character by character, send the string
-void _send() {
-  while (message.length() > 0) {
-    Keyboard.println(message.charAt(0));
-    message.remove(0, 1);
-     delay(10);
+//character by character, send the string, then enter
+void send() {
+  while (_message.length() > 0) {
+    Keyboard.println(_message.charAt(0));
+    _message.remove(0, 1);
+    delay(10);
   }
+   Keyboard.write(176);
+   delay(10);
 }
 
 void buttonOnEvent() {
   lightOn = ! lightOn;
   doLight();
+  int now = millis();
+  if(lastEventMicrosendStamp==-1){
+    duration = now - startMicrosecondStamp;
+  }
+  else{
+    duration = now - lastEventMicrosendStamp;
+  }
+  lastEventMicrosendStamp = now;
+  message("duration: "+String(duration));
+  send();
 }
 
 void lightOffEvent() {
@@ -52,8 +67,8 @@ void lightOnEvent() {
   lightVal = digitalRead(lightPin);   // read the input pin
   Serial.println(lightVal);
   lightOn = lightVal == 1;
-        send("hello");
-        _send();
+        message("hello");
+        send();
   doLight();
 
 }
@@ -61,7 +76,7 @@ void lightOnEvent() {
 void loop()
 {
   //Serial.println(1);  // prints hello with ending line break
-  //_send();
+  //send();
   //delay(100);
 }
 
