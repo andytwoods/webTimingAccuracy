@@ -6,9 +6,9 @@ int buttonVal = 0;     // variable to store the read value
 String _message = "";
 volatile int lightVal = 0;
 volatile boolean lightOn = false;
-int startMicrosecondStamp = -1;
-int lastEventMicrosendStamp = -1;
-int duration = -1;
+long startMicrosecondStamp = -1;
+long lastEventMicrosendStamp = -1;
+long duration = -1;
 
 void setup()
 {
@@ -45,9 +45,13 @@ void send() {
 void buttonOnEvent() {
   lightOn = ! lightOn;
   doLight();
-  int now = millis();
-  if(lastEventMicrosendStamp==-1){
-    duration = now - startMicrosecondStamp;
+  calcDuration();
+}
+
+void calcDuration(){
+  long now = micros();
+  if(lastEventMicrosendStamp == -1){
+    duration = -1;
   }
   else{
     duration = now - lastEventMicrosendStamp;
@@ -90,4 +94,3 @@ int doLight()
     digitalWrite(LED_BUILTIN, LOW);
   }
 }
-
